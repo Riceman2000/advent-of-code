@@ -1,3 +1,5 @@
+use rayon::prelude::*;
+
 #[derive(aoc_macros::AocDay)]
 #[output_type("usize")]
 #[expected_short(Some(43))]
@@ -41,35 +43,39 @@ pub fn day(input: &'static [u8]) -> usize {
 
 #[inline]
 fn get_removable(grid: &[Vec<u8>]) -> Vec<(usize, usize)> {
-    let mut out = Vec::new();
-    let valid_x = 0..grid[0].len();
-    let valid_y = 0..grid.len();
-    for (y, l) in grid.iter().enumerate() {
-        for (x, item) in l.iter().enumerate() {
-            if *item == b'.' {
-                continue;
-            }
-            let pos = (x.cast_signed(), y.cast_signed());
-            let mut surround = 0;
-            for dir in DIRS {
-                let check_pos = (pos.0 + dir.0, pos.1 + dir.1);
-                if !valid_x.contains(&check_pos.0.cast_unsigned())
-                    || !valid_y.contains(&check_pos.1.cast_unsigned())
-                {
-                    continue;
-                }
-                let check_pos = (check_pos.0.cast_unsigned(), check_pos.1.cast_unsigned());
-                let check_item =
-                    unsafe { *grid.get_unchecked(check_pos.1).get_unchecked(check_pos.0) };
-                if check_item == b'@' {
-                    surround += 1;
-                }
-            }
-            if surround < 4 {
-                let pos = (pos.0.cast_unsigned(), pos.1.cast_unsigned());
-                out.push(pos);
-            }
-        }
-    }
-    out
+    grid.par_iter()
+        .enumerate()
+        .flat_map(|(y, l)| {
+            l.iter()
+                .enumerate()
+                .filter_map(move |(x, item)| {
+                    if *item == b'.' {
+                        return None;
+                    }
+                    let pos = (x.cast_signed(), y.cast_signed());
+                    let mut surround = 0;
+                    for dir in DIRS {
+                        let check_pos = (pos.0 + dir.0, pos.1 + dir.1);
+                        if !(0..grid[0].len()).contains(&check_pos.0.cast_unsigned())
+                            || !(0..grid.len()).contains(&check_pos.1.cast_unsigned())
+                        {
+                            continue;
+                        }
+                        let check_pos = (check_pos.0.cast_unsigned(), check_pos.1.cast_unsigned());
+                        let check_item =
+                            unsafe { *grid.get_unchecked(check_pos.1).get_unchecked(check_pos.0) };
+                        if check_item == b'@' {
+                            surround += 1;
+                        }
+                    }
+                    if surround < 4 {
+                        let pos = (pos.0.cast_unsigned(), pos.1.cast_unsigned());
+                        Some(pos)
+                    } else {
+                        None
+                    }
+                })
+                .collect::<Vec<_>>()
+        })
+        .collect()
 }
