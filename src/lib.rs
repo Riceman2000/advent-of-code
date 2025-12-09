@@ -2,6 +2,7 @@
 #![feature(iter_map_windows)]
 #![feature(slice_split_once)]
 #![feature(iter_array_chunks)]
+#![feature(slice_partition_dedup)]
 
 use std::io::Write;
 use std::sync::LazyLock;
