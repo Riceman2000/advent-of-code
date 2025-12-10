@@ -1,7 +1,4 @@
-use std::{
-    collections::{BinaryHeap, HashSet},
-    hash::Hash,
-};
+use std::{collections::BinaryHeap, hash::Hash};
 
 use rstar::{PointDistance, RTree, RTreeObject, AABB};
 
@@ -9,8 +6,8 @@ use atoi::atoi;
 
 #[derive(aoc_macros::AocDay)]
 #[output_type("usize")]
-#[expected_short(Some(40))]
-#[expected_long(Some(102_816))]
+#[expected_short(Some(25272))]
+#[expected_long(Some(100_011_612))]
 pub struct Day;
 
 // Point type
@@ -99,13 +96,9 @@ pub fn day(input: &'static [u8]) -> usize {
         .collect();
     let tree: RTree<Point> = RTree::bulk_load(points.clone());
 
-    // Support short input
-    let top_n = if points.len() >= 1000 { 1000 } else { 10 };
-
     let mut pairs = BinaryHeap::new();
-    // let mut seen = HashSet::new();
     let mut seen = nohash_hasher::IntSet::default();
-    let scan_range = 10;
+    let scan_range = 50;
     for (i, point) in points.iter().enumerate() {
         let nearest_neighbors = tree
             .nearest_neighbor_iter(&point.as_array())
@@ -126,8 +119,7 @@ pub fn day(input: &'static [u8]) -> usize {
             }
         }
     }
-    let mut pairs = pairs.into_sorted_vec();
-    pairs.truncate(top_n);
+    let pairs = pairs.into_sorted_vec();
 
     let mut nets: Vec<nohash_hasher::IntSet<Point>> = points
         .iter()
@@ -165,7 +157,9 @@ pub fn day(input: &'static [u8]) -> usize {
             }
             _ => unreachable!("Can only bridge two nets"),
         }
+        if nets.len() == 1 {
+            return (a.x * b.x).cast_unsigned();
+        }
     }
-    nets.sort_unstable_by_key(HashSet::len);
-    nets.iter().rev().take(3).map(HashSet::len).product()
+    0
 }

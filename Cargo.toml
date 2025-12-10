@@ -67,6 +67,7 @@ nalgebra = "0.34.1"
 ndarray = "0.17.1"
 ndarray-conv = "0.6.0"
 rstar = "0.12.2"
+nohash-hasher = "0.2.0"
 
 [build-dependencies]
 regex = "1.12.2"
